@@ -17,7 +17,7 @@ export class RolesGuard implements CanActivate {
         const userRole = request.user?.role;
 
         if (!requiredRoles.includes(userRole)) {
-            throw new HttpException('Does not have access to this route', 403);
+            throw new HttpException('Does not have permission to access this route', 403);
         }
 
         return true;

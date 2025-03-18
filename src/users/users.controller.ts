@@ -5,7 +5,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
-import { userAuthGuard } from './userPermissions.guard';
+import { userAuthGuard } from './user-permissions/userPermissions.guard';
 
 
 @Controller('users')
@@ -29,10 +29,8 @@ export class UsersController {
   @Put(':id')
   @UseGuards(userAuthGuard)
   async update(@Param('id') id: string, @Body() createUserDto: CreateUserDto) {
-    
-    const userId = parseInt(id)
 
-    return await this.usersService.update(userId, createUserDto);
+    return await this.usersService.update(+id, createUserDto);
   }
 
   @Roles('admin', 'user')
@@ -40,17 +38,14 @@ export class UsersController {
   @UseGuards(userAuthGuard)
   async updatePartial(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     
-    const userId = parseInt(id)
-    
-    return await this.usersService.update(userId, updateUserDto);
+    return await this.usersService.update(+id, updateUserDto);
   }
 
   @Roles('user')
   @Delete(':id')
   @UseGuards(userAuthGuard)
   async remove(@Param('id') id: string) {
-    const userId = parseInt(id)
 
-    return await this.usersService.remove(userId);
+    return await this.usersService.remove(+id);
   }
 }

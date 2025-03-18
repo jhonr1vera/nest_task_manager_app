@@ -8,7 +8,18 @@ export class TasksService {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  private async validateUser(id?: number){
+
+    const userExists = await this.prisma.user.findUnique({where: {id}})
+
+    if(!userExists) throw new HttpException('The user does not exist', 404)
+
+  }
+
   async create(createTaskDto: CreateTaskDto, userId: number) {
+
+    await this.validateUser(createTaskDto.assigned_user)
+
     return await this.prisma.task.create({
       data: {
       ...createTaskDto,
@@ -16,10 +27,6 @@ export class TasksService {
       assigned_user: { connect: { id: createTaskDto.assigned_user } },
       }
   });
-  }
-
-  async findAllInUser(userId: number){
-    // return await this.prisma.task.findMany({where: {created_by: userId}})
   }
 
   async findAll() {
@@ -32,11 +39,7 @@ export class TasksService {
 
   async update(taskId: number, updateTaskDto: UpdateTaskDto) {
 
-    const assignedUserExists = await this.prisma.user.findUnique({
-      where: {id: updateTaskDto.assigned_user}
-    })
-
-    if(!assignedUserExists) throw new HttpException('Assigned user does not exist', 404)
+    await this.validateUser(updateTaskDto.assigned_user)
 
     return await this.prisma.task.update({
       where: { task_id: taskId },
@@ -47,9 +50,9 @@ export class TasksService {
     });
   }
 
-  async remove(id: number) {
+  async remove(taskId: number) {
     return await this.prisma.task.delete({
-      where: {task_id: id}
+      where: {task_id: taskId}
     })
   }
 }
