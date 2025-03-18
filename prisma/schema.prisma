@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String  @unique
+  password  String
+  role      String   @default("user")
+  
+  tasks     Task[]   @relation("assignedTasks")
+  createdTasks Task[] @relation("createdTasks")
+  comments  Comments[] @relation("commentedUser") 
+  taskChanged Task_History[] @relation("taskChangedBy")
+}
+
+model Task {
+  task_id         Int    @id @default(autoincrement())
+  title           String
+  description     String
+  status          String @default("to-do")
+  date_limit     DateTime
+  priority        String @default("medium")
+
+  assigned_user   User   @relation("assignedTasks", fields: [assigned_user_id], references: [id])
+  assigned_user_id Int
+  created_by      User   @relation("createdTasks", fields: [created_by_id], references: [id])
+  created_by_id    Int
+
+  created_at DateTime @default(now())
+
+  commented_tasks Comments[] @relation("commentedTask")
+  task_history Task_History[] @relation("taskChanges")
+}
+
+model Comments {
+  id Int @id @default(autoincrement())
+  content String
+  
+  task_id Int 
+  task Task @relation("commentedTask",fields: [task_id], references: [task_id])
+  
+  user_id Int 
+  user User @relation("commentedUser", fields: [user_id], references: [id])
+
+  created_at DateTime @default(now())
+}
+
+model Task_History {
+  id Int @id @default(autoincrement())
+  task_id Int
+  task Task @relation("taskChanges", fields: [task_id], references: [task_id])
+  user_id Int
+  user User @relation("taskChangedBy", fields: [user_id], references: [id])
+
+  action String
+  
+  created_at DateTime @default(now())
+}
