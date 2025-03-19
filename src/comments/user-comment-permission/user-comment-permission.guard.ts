@@ -1,29 +1,25 @@
 import { CanActivate, ExecutionContext, HttpException, Injectable } from "@nestjs/common"
-import { PrismaService } from "src/prisma.service";
+import { CommentsService } from "../comments.service";
 
 @Injectable()
-export class userAuthGuard implements CanActivate{
+export class UserAuthCommentsGuard implements CanActivate{
     
-    constructor(private prisma: PrismaService){}
+    constructor(private commentsService: CommentsService){}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
+        
         const request = context.switchToHttp().getRequest()
         const userId = request.user?.sub
+        const commentIdUrl = parseInt(request.params.id);
 
-        const commentIdUrl = request.params.id;
-
-        const commentPostgres = await this.prisma.comments.findFirst({where: {
-            id: parseInt(commentIdUrl)
-        }})
+        const commentPostgres = await this.commentsService.commentExist(commentIdUrl)
 
         if(!commentIdUrl) throw new HttpException ('There was an error in the URL Request', 400)
 
         if (!commentPostgres) throw new HttpException('The comment does not exist', 404)
 
-        if(userId !== commentPostgres.id) throw new HttpException('You do not have permission for change this comment', 403)
+        if(userId !== commentPostgres.user_id) throw new HttpException('You do not have permission to change this comment', 403)
 
         return true
     }
 }
-
-// to validate comments

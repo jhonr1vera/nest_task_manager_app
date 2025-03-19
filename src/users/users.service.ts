@@ -7,7 +7,7 @@ export class UsersService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  private async validateUser(id:number){
+  async validateUser(id:number){
 
     const userExists = await this.prisma.user.findUnique({where: {id}})
 

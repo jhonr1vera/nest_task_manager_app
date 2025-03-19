@@ -16,69 +16,84 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
-import { userAuthGuard } from './userAuth.guard';
+import { UserAuthCommentsGuard } from './user-comment-permission/user-comment-permission.guard';
 import AuthenticatedRequest from 'src/types/express';
+import { ApiResponse, ApiOperation } from '@nestjs/swagger';
 
 @UseGuards(AuthGuard, RolesGuard)
-@Controller('comments')
+@Controller('tasks/:taskId/comments')
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
+
+  @ApiOperation({summary: 'create a comment in a tasks (Can be access by users and admins)'})
+  @ApiResponse({status: 200, description: "return comment"})
+  @ApiResponse({status: 404, description: "task not found"})
   @Roles('user', 'admin')
-  @Post('/:taskId')
-  create(
-    @Param('taskId') id: number,
+  @Post()
+  async create(
+    @Param('taskId') taskId: number,
     @Body() createCommentDto: CreateCommentDto,
     @Req() request: AuthenticatedRequest,
   ) {
-
     const userId = request.user?.sub;
-    const taskId = id;
-
-    if (!taskId)
-      throw new HttpException('There was an error in the request', 400);
-    if (!userId)
-      throw new HttpException('There was an error in the request', 400);
-
-    return this.commentsService.create(createCommentDto, userId, taskId);
+    return await this.commentsService.create(createCommentDto, userId, +taskId);
+  }
   
+  @ApiOperation({summary: 'return all comments (Can be access by admins)'})
+  @ApiResponse({status: 200, description: "return comments"})
+  @ApiResponse({status: 403, description: "no permissions to perform this action"})
+  @Roles('admin')
+  @Get('comments')
+  async findAll() {
+    return await this.commentsService.findAll();
   }
 
+  @ApiOperation({summary: 'return all comments by task (Can be access by admins and users)'})
+  @ApiResponse({status: 200, description: "return comments by task"})
   @Roles('user', 'admin')
   @Get()
-  findAll() {
-
-    return this.commentsService.findAll();
+  async findAllByTask(@Param('taskId') taskId: number) {
+    return await this.commentsService.findAllByTask(+taskId);
   
   }
 
+  @ApiOperation({summary: 'return a comment by task (Can be access by admins and users)'})
+  @ApiResponse({status: 200, description: "return comment"})
   @Roles('user', 'admin')
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
+    const comment = await this.commentsService.findOne(+id);
 
-    return this.commentsService.findOne(+id);
-  
+    if (!comment || comment.task_id !== +id) {
+      throw new HttpException('The comment does not exist in this task', 404);
+    }
+
+    return comment;
   }
 
-  @UseGuards(userAuthGuard)
+  @ApiOperation({summary: 'Update the comment (Can be access by admins and users but if it is your comment)'})
+  @ApiResponse({status: 200, description: "return updated comment"})
   @Roles('user', 'admin')
-  @Patch(':taskId/:commentId')
-  update(
-    @Param('taskId') taskId: string,
-    @Param('commentId') commentId,
+  @UseGuards(UserAuthCommentsGuard)
+  @Patch(':id')
+  async update(
+    @Param('id') id: number,
     @Body() updateCommentDto: UpdateCommentDto,
   ) {
 
-    return this.commentsService.update(+taskId, updateCommentDto);
+    return await this.commentsService.update(+id, updateCommentDto);
   
   }
 
-  @UseGuards(userAuthGuard)
+  @ApiOperation({summary: 'Delete the comment (Can be access by admins and users but if it is your comment)'})
+  @ApiResponse({status: 200, description: "return deleted comment"})
   @Roles('user', 'admin')
+  @UseGuards(UserAuthCommentsGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
 
-    return this.commentsService.remove(+id);
+    return await this.commentsService.remove(+id);
   
   }
 }

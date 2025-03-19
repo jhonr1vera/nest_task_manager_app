@@ -1,24 +1,30 @@
 import { HttpException, Injectable, UseGuards } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { UpdateTaskStatusDto } from './dto/update-task-status';
 import { PrismaService } from 'src/prisma.service';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class TasksService {
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private usersService: UsersService) {}
 
-  private async validateUser(id?: number){
+    async ValidateTask(id?: number){
 
-    const userExists = await this.prisma.user.findUnique({where: {id}})
+    const taskExist = await this.prisma.task.findUnique({
+      where: {task_id: id}
+    })
+  
+    if(!taskExist) throw new HttpException('This task does not exist', 404)
 
-    if(!userExists) throw new HttpException('The user does not exist', 404)
+    return taskExist
 
   }
 
   async create(createTaskDto: CreateTaskDto, userId: number) {
 
-    await this.validateUser(createTaskDto.assigned_user)
+    await this.usersService.validateUser(createTaskDto.assigned_user)
 
     return await this.prisma.task.create({
       data: {
@@ -30,16 +36,26 @@ export class TasksService {
   }
 
   async findAll() {
-    return await this.prisma.task.findMany()
+    const tasks = await this.prisma.task.findMany()
+
+    if(tasks.length === 0) throw new HttpException('There is not task created', 204)
+
+    return tasks
   }
 
   async findOne(id: number) {
-    return await this.prisma.task.findUnique({where: {task_id: id}})
+    
+    await this.ValidateTask(id)
+
   }
 
   async update(taskId: number, updateTaskDto: UpdateTaskDto) {
 
-    await this.validateUser(updateTaskDto.assigned_user)
+    if (updateTaskDto.assigned_user === undefined) {
+      throw new HttpException('There was an error in the request', 400);
+    }
+
+    await this.usersService.validateUser(updateTaskDto.assigned_user)
 
     return await this.prisma.task.update({
       where: { task_id: taskId },
@@ -47,6 +63,13 @@ export class TasksService {
         ...updateTaskDto,
         assigned_user: { connect: { id: updateTaskDto.assigned_user } }
       },
+    });
+  }
+
+  async updateStatus(taskId: number, updateTaskStatusDto: UpdateTaskStatusDto){
+    return await this.prisma.task.update({
+      where: { task_id: taskId },
+      data: updateTaskStatusDto,
     });
   }
 
