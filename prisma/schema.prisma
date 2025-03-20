@@ -23,7 +23,7 @@ model User {
   tasks     Task[]   @relation("assignedTasks")
   createdTasks Task[] @relation("createdTasks")
   comments  Comments[] @relation("commentedUser") 
-  taskChanged Task_History[] @relation("taskChangedBy")
+  taskChanged Task_history[] @relation("taskChangedBy")
 }
 
 model Task {
@@ -42,7 +42,7 @@ model Task {
   created_at DateTime @default(now())
 
   commented_tasks Comments[] @relation("commentedTask")
-  task_history Task_History[] @relation("taskChanges")
+  task_history Task_history[] @relation("taskChanges")
 }
 
 model Comments {
@@ -58,7 +58,7 @@ model Comments {
   created_at DateTime @default(now())
 }
 
-model Task_History {
+model Task_history {
   id Int @id @default(autoincrement())
   task_id Int
   task Task @relation("taskChanges", fields: [task_id], references: [task_id])
