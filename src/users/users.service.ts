@@ -16,7 +16,12 @@ export class UsersService {
   }
 
   async findAll() {
-    return this.prisma.user.findMany();
+    const users = await this.prisma.user.findMany();
+
+    if(users.length === 0) throw new HttpException('There is not users created', 204)
+
+    return users
+
   }
 
   async findOne(id: number) {

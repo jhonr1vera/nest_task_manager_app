@@ -39,15 +39,6 @@ export class CommentsController {
     const userId = request.user?.sub;
     return await this.commentsService.create(createCommentDto, userId, +taskId);
   }
-  
-  @ApiOperation({summary: 'return all comments (Can be access by admins)'})
-  @ApiResponse({status: 200, description: "return comments"})
-  @ApiResponse({status: 403, description: "no permissions to perform this action"})
-  @Roles('admin')
-  @Get('comments')
-  async findAll() {
-    return await this.commentsService.findAll();
-  }
 
   @ApiOperation({summary: 'return all comments by task (Can be access by admins and users)'})
   @ApiResponse({status: 200, description: "return comments by task"})
@@ -60,14 +51,12 @@ export class CommentsController {
 
   @ApiOperation({summary: 'return a comment by task (Can be access by admins and users)'})
   @ApiResponse({status: 200, description: "return comment"})
+  @ApiResponse({status: 404, description: "this comment does not exist"})
   @Roles('user', 'admin')
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const comment = await this.commentsService.findOne(+id);
-
-    if (!comment || comment.task_id !== +id) {
-      throw new HttpException('The comment does not exist in this task', 404);
-    }
+  async findOne(@Param('id') id: string, @Param('taskId') taskId:number) {
+    
+    const comment = await this.commentsService.findOne(+id, +taskId);
 
     return comment;
   }

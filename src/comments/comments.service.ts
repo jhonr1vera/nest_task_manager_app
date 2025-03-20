@@ -30,10 +30,6 @@ export class CommentsService {
     }});
   }
 
-  async findAll() {
-    return await this.prisma.comments.findMany()
-  }
-
   async findAllByTask(taskId: number){
 
     await this.tasksService.ValidateTask(taskId)
@@ -41,11 +37,16 @@ export class CommentsService {
     return await this.prisma.comments.findMany({where: {task_id: taskId}})
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, taskId: number) {
 
-    const comment = await this.prisma.comments.findUnique({where: {id}})
+    const comment = await this.prisma.comments.findUnique({where: {id: id}})
 
-    if(!comment) throw new HttpException('This resource does not exist', 404)
+    
+    if (comment !== null && comment.task_id !== taskId) {
+      throw new HttpException('The comment does not exist in this task', 404);
+    }
+
+    if(!comment) throw new HttpException('This comment does not exist', 404)
 
     return comment
   }

@@ -30,6 +30,7 @@ export class TasksController {
 
   @ApiOperation({summary: 'Return all tasks (Can be access by users and admins)'})
   @ApiResponse({status: 200, description: "tasks"})
+  @ApiResponse({status: 204, description: "no tasks"})
   @Roles('admin', 'user')
   @Get()
   async findAll() {
@@ -53,9 +54,10 @@ export class TasksController {
   @Roles('admin', 'user')
   @UseGuards(UserTaskPermissionGuard)
   @Put(':id')
-  async update(@Param('id') id: string, @Body() createTaskDto: CreateTaskDto) {
-    
-    return await this.tasksService.update(+id, createTaskDto);
+  async update(@Param('id') id: string, @Body() createTaskDto: CreateTaskDto, @Req() request: AuthenticatedRequest) {
+    const userId = request.user?.sub
+
+    return await this.tasksService.update(+id, createTaskDto, +userId);
   
   }
 
@@ -66,9 +68,10 @@ export class TasksController {
   @Roles('admin', 'user')
   @UseGuards(UserTaskPermissionGuard)
   @Patch(':id')
-  async updateTask(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
+  async updateTask(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto, @Req() request: AuthenticatedRequest) {
+    const userId = request.user?.sub
 
-    return await this.tasksService.update(+id, updateTaskDto);
+    return await this.tasksService.update(+id, updateTaskDto, +userId);
   }
 
   @ApiOperation({summary: 'Update status tasks by id (Can be access by users and admins but only if you are the assigned user)'})
@@ -81,7 +84,7 @@ export class TasksController {
   async updateTaskAssignedUser(@Param('id') id: string, @Body() updateTaskStatusDto: UpdateTaskStatusDto, @Req() request: AuthenticatedRequest) {
     const userId = request.user?.sub
 
-    return await this.tasksService.updateStatus(+id, updateTaskStatusDto);
+    return await this.tasksService.updateStatus(+id, updateTaskStatusDto, userId);
   }
 
   @ApiOperation({summary: 'Delete tasks by id (Can be access by users and admins but only if you are the assigned user)'})
