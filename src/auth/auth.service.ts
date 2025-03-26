@@ -8,6 +8,11 @@ import { CreateUserDto } from 'src/users/dto/create-user.dto';
 export class AuthService {
   constructor(private readonly prisma: PrismaService, private readonly jwtService: JwtService) {}
 
+  extractTokenFromHeader(request): string | undefined {
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+    return type === 'Bearer' ? token : undefined;
+  }
+
   async register(createUserDto: CreateUserDto) {
     return await this.prisma.user.create({
       data: createUserDto,
