@@ -18,7 +18,7 @@ export class AuthController {
       return this.authService.register(createUserDto);
   }
 
-  @ApiOperation({summary: 'Create a new user'})
+  @ApiOperation({summary: 'Verify an user'})
   @ApiResponse({status: 200, description: "return access token (bearer)"})
   @Post('login')
   async login(@Body() loginDto: LoginDto) {

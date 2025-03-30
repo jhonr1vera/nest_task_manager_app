@@ -1,8 +1,9 @@
 import {
     CanActivate,
     ExecutionContext,
-    HttpException,
-    Injectable
+    GoneException,
+    Injectable,
+    UnauthorizedException
   } from '@nestjs/common';
   import { JwtService } from '@nestjs/jwt';
   import { Request } from 'express';
@@ -17,7 +18,7 @@ import {
       const token = this.authService.extractTokenFromHeader(request);
 
       if (!token) {
-        throw new HttpException('Token not found', 401);
+        throw new UnauthorizedException('Token does not exist');
       }
       try {
         const payload = await this.jwtService.verifyAsync(
@@ -28,7 +29,7 @@ import {
         );
         request['user'] = payload;
       } catch {
-        throw new HttpException('Invalid token', 403);
+        throw new GoneException('Token invalid or expired');
       }
       return true;
     }
