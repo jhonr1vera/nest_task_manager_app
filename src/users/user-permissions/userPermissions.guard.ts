@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, HttpException, Injectable } from "@nestjs/common"
+import { BadRequestException, CanActivate, ExecutionContext, ForbiddenException, HttpException, Injectable } from "@nestjs/common"
 
 @Injectable()
 export class userAuthGuard implements CanActivate{
@@ -8,11 +8,11 @@ export class userAuthGuard implements CanActivate{
         const id = request.params.id
 
         if (!userId) {
-            throw new HttpException('There was an error in the request', 400);
+            throw new BadRequestException('There was an error in the request');
           }
       
           if (userId !== parseInt(id)) {
-            throw new HttpException('You do not have permissions to perform this action', 403);
+            throw new ForbiddenException('You do not have permissions to perform this action');
           }
 
         return true

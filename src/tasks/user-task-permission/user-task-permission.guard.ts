@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, HttpException } from '@nestjs/common'; 
+import { CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common'; 
 import { TasksService } from '../tasks.service';
 
 @Injectable()
@@ -17,7 +17,7 @@ export class UserTaskPermissionGuard implements CanActivate {
     
     const taskExists = await this.tasksService.ValidateTask(task_id)
 
-    if(taskExists.created_by_id !== userId ) throw new HttpException('You do not have permissions to perform this action', 403)
+    if(taskExists.created_by_id !== userId ) throw new ForbiddenException('You do not have permissions to perform this action')
 
     return true;
   }

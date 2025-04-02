@@ -1,4 +1,4 @@
-import { HttpException, Injectable, Patch, UseGuards } from '@nestjs/common';
+import {Injectable, NotFoundException} from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PrismaService } from 'src/prisma.service';
@@ -43,10 +43,10 @@ export class CommentsService {
 
     
     if (comment !== null && comment.task_id !== taskId) {
-      throw new HttpException('The comment does not exist in this task', 404);
+      throw new NotFoundException('The comment does not exist in this task');
     }
 
-    if(!comment) throw new HttpException('This comment does not exist', 404)
+    if(!comment) throw new NotFoundException('This comment does not exist')
 
     return comment
   }

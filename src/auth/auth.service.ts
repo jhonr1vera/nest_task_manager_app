@@ -1,6 +1,6 @@
 import { PrismaService } from 'src/prisma.service';
 import { LoginDto } from './dto/login.dto';
-import { HttpException, Injectable } from '@nestjs/common';
+import {Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 
@@ -8,6 +8,11 @@ import { CreateUserDto } from 'src/users/dto/create-user.dto';
 @Injectable()
 export class AuthService {
   constructor(private readonly prisma: PrismaService, private readonly jwtService: JwtService) {}
+
+  extractTokenFromHeader(request): string | undefined {
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+    return type === 'Bearer' ? token : undefined;
+  }
 
   async register(createUserDto: CreateUserDto) {
     return await this.prisma.user.create({
@@ -24,11 +29,11 @@ export class AuthService {
     });
 
     if(!userExists) {
-        throw new HttpException('User not found', 404);
+        throw new NotFoundException('User not found');
     }
 
     if(userExists.password !== loginDto.password) {
-        throw new HttpException('Invalid password', 401);
+        throw new UnauthorizedException('Invalid password');
     }
 
     const Payload = { email: loginDto.email, sub: userExists.id, role: userExists.role};

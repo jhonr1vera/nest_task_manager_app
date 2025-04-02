@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma.service';
 
@@ -11,7 +11,7 @@ export class UsersService {
 
     const userExists = await this.prisma.user.findUnique({where: {id}})
 
-    if(!userExists) throw new HttpException('The user does not exist', 404)
+    if(!userExists) throw new NotFoundException('The user does not exist')
 
   }
 

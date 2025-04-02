@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, HttpException, Injectable } from "@nestjs/common"
+import { BadRequestException, CanActivate, ExecutionContext, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common"
 import { CommentsService } from "../comments.service";
 
 @Injectable()
@@ -14,11 +14,11 @@ export class UserAuthCommentsGuard implements CanActivate{
 
         const commentPostgres = await this.commentsService.commentExist(commentIdUrl)
 
-        if(!commentIdUrl) throw new HttpException ('There was an error in the URL Request', 400)
+        if(!commentIdUrl) throw new BadRequestException ('There was an error in the URL Request')
 
-        if (!commentPostgres) throw new HttpException('The comment does not exist', 404)
+        if (!commentPostgres) throw new NotFoundException ('The comment does not exist')
 
-        if(userId !== commentPostgres.user_id) throw new HttpException('You do not have permission to change this comment', 403)
+        if(userId !== commentPostgres.user_id) throw new ForbiddenException ('You do not have permission to change this comment')
 
         return true
     }

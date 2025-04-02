@@ -8,7 +8,6 @@ import {
   Delete,
   UseGuards,
   Req,
-  HttpException,
 } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';

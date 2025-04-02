@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import {Injectable, NotFoundException, HttpException, BadRequestException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { UpdateTaskStatusDto } from './dto/update-task-status';
@@ -17,7 +17,7 @@ export class TasksService {
       where: {task_id: id}
     })
   
-    if(!taskExist) throw new HttpException('This task does not exist', 404)
+    if(!taskExist) throw new NotFoundException('This task does not exist')
 
     return taskExist
 
@@ -57,7 +57,7 @@ export class TasksService {
   async update(taskId: number, updateTaskDto: UpdateTaskDto, userId: number) {
 
     if (updateTaskDto.assigned_user === undefined) {
-      throw new HttpException('There was an error in the request, assigned user needed', 400);
+      throw new BadRequestException('There was an error in the request, assigned user needed');
     }
 
     await this.usersService.validateUser(updateTaskDto.assigned_user)
